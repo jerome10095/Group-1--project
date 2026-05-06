@@ -4,12 +4,16 @@
     color: white;
     font-size: 30px;
     display: flex;
+    gap: 20px;
+    box-sizing: border-box;
 }
 
 #nav {
     display: inline;
     display: flex;
     padding-right: 20px;
+    font-size: 20;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     
 }
 
@@ -19,5 +23,7 @@ li {
 }
 
 h1 {
-    ma
+    margin-right: 40pc;
+    padding-left: 5pc;
+    font-family: 'Times New Roman', Times, serif;
 }
