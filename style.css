@@ -1,0 +1,23 @@
+
+.header {
+    background-color: rgb(30, 30, 31);
+    color: white;
+    font-size: 30px;
+    display: flex;
+}
+
+#nav {
+    display: inline;
+    display: flex;
+    padding-right: 20px;
+    
+}
+
+li {
+    margin-right: 5pc;
+    text-align: right;
+}
+
+h1 {
+    ma
+}
