@@ -27,3 +27,15 @@ h1 {
     padding-left: 5pc;
     font-family: 'Times New Roman', Times, serif;
 }
+
+.products-container {
+    display:block;
+    height: 50px:auto;
+
+}
+
+.product1 {
+    border:
+    : 50p%;
+    width: 50%;
+}
