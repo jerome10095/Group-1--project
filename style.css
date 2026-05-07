@@ -29,13 +29,17 @@ h1 {
 }
 
 .products-container {
-    display:block;
-    height: 50px:auto;
-
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 70p%;
+    margin: auto;
 }
 
-.product1 {
-    border:
-    : 50p%;
-    width: 50%;
+.products-container img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+
 }
