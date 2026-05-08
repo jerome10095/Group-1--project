@@ -30,20 +30,21 @@ h1 {
 
 .products-container {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 50px;
     width: 100%;
-    max-width: 50p%;
+    max-width: 70p%;
     margin: auto;
-    padding: 20px;
+    padding: 10px;
+    margin: 10px;
 
 }
 
 .products-container img {
     width: 100%;
     height: auto;
-    object-fit: cover;
-    display: flex;
+    display: block;
+    overflow: hidden;
 
 }
 
@@ -51,26 +52,40 @@ button {
 
     color: white;
     background-color: rgb(19, 177, 19);
-    justify-content: center;
     height: 40px;
     width: 100px;
     text-align: center;
+    border-radius: 300px;
+    align-items: center;
+    justify-content: center;
 
 }
 
 p {
     color:rgb(52, 240, 240);
     text-align: center;
-    font-size: 50px;
+    font-size: 2pc;
+    margin: auto;
     
 }
 
 h2 {
     text-align: center;
-    font-size: 40px;
+    font-size: 40pc;
+    display: inline;
+    font-size: 20px;
+    justify-content: center;
+
 }
 
-.card1 {
-    text-align: center;
-    display: flex;
+
+
+.product1, .product2, .product3, .product4, .product5, .product6 {
+
+    height: 100%;
+    width: 300px;
+    margin: 0px;
+    padding: 10px;   
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 5px 6px #ccc;
 }
