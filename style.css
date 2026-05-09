@@ -54,6 +54,8 @@ h1 {
     height: auto;
     display: block;
     overflow: hidden;
+    border-radius: 10px;
+    object-fit: cover;
 
 }
 
@@ -112,6 +114,7 @@ card-container section:hover {
     text-align: center;
     padding: 20px;
     font-size: 20px;
+    margin: 0px;
 
     
 }
