@@ -58,7 +58,7 @@ h1 {
 
 .products-container img {
     width: 100%;
-    height: auto;
+    height: 250px;
     display: block;
     overflow: hidden;
     border-radius: 10px;
@@ -139,5 +139,5 @@ card-container section:hover {
     box-shadow: 6px 6px 10px rgba(0,0,0,0.1);
     transition: transform 0.3s ease;
     border: 1px solid rgb(248, 248, 252);
-    margin: 40px;
+    margin: 10px;
 }
