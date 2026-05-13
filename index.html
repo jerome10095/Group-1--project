@@ -9,14 +9,21 @@
 <body>
 <div class="container">
    <section class="header">
+    <div class="search-box">
+        <span class="icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search products...">
+    </div>
     <h1 id="title">Our Online Store</h1>
-
-    <ul class="nav">
-        <li><a href="#">Home</a></li>
-        <li><a href="#">New Arrival</a></li>
-        <li><a href="#">Best Sellers</a></li>
-        <li><a href="#">Contact</a></li>
+    <button class="hamburger" id="hamburger" aria-lablel="open menu"> &#9776;</button>
+    <div class="slide-nav" id="slideNav">
+    <ul class="slide-nav-links">
+        <li>Home</li>
+        <li>New Arrival</li>
+        <li>Best Sellers</li>
+        <li>Contact</li>
     </ul>
+</div>
+<div class="overlay" id="overlay"></div>
 </section>
 
     <div class="products-container">
