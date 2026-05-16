@@ -11,18 +11,50 @@ let cart = [];
 let currentUser = null;
 const SHIPPING_THRESHOLD = 50;
 const SHIPPING_COST = 5.00;
-const SELLER_WHATSAPP = '250791720024'; // seller's WhatsApp number
+const SELLER_WHATSAPP = '250791720024';
 
 function getShipping(sub) { return sub >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST; }
 
+// ════════════════════════════════════════════
+//  SCROLL PROGRESS BAR
+// ════════════════════════════════════════════
+function initScrollBar() {
+  const bar = document.getElementById('scrollBar');
+  if (!bar) return;
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const total    = document.body.scrollHeight - window.innerHeight;
+    bar.style.width = (total > 0 ? (scrolled / total) * 100 : 0) + '%';
+  }, { passive: true });
+}
+
+// ════════════════════════════════════════════
+//  TOAST NOTIFICATION
+// ════════════════════════════════════════════
+let toastTl = null;
+function showToast(msg, emoji = '✅') {
+  const el = document.getElementById('toastBar');
+  if (!el) return;
+  el.textContent = emoji + '  ' + msg;
+  if (toastTl) toastTl.kill();
+  toastTl = gsap.timeline();
+  toastTl
+    .to(el, { opacity: 1, y: 0, duration: 0.38, ease: 'power3.out' })
+    .to(el, { opacity: 0, y: 16, duration: 0.4, ease: 'power2.in', delay: 2.2 });
+}
+
+// ════════════════════════════════════════════
+//  CART FUNCTIONS
+// ════════════════════════════════════════════
 function updateCartCount() {
   const total = cart.reduce((s, i) => s + i.qty, 0);
   const el = document.getElementById('cartCount');
   el.textContent = total;
   if (total > 0) {
     el.style.display = 'inline-flex';
-    gsap.fromTo(el, { scale: 1.8, backgroundColor: '#ff6b00' },
-      { scale: 1, backgroundColor: '#e07b2a', duration: 0.4, ease: 'bounce' });
+    gsap.fromTo(el,
+      { scale: 1.8, backgroundColor: '#ff6b00' },
+      { scale: 1,   backgroundColor: '#e07b2a', duration: 0.4, ease: 'bounce' });
   } else {
     el.style.display = 'none';
   }
@@ -32,15 +64,14 @@ function renderCart() {
   const c = document.getElementById('cartItems');
   if (cart.length === 0) {
     c.innerHTML = '<p class="cart-empty">Your cart is empty.</p>';
-    ['cartSubtotal','cartShipping','cartTotal'].forEach(id => {
-      document.getElementById(id).textContent = '$0.00';
-    });
+    ['cartSubtotal','cartShipping','cartTotal'].forEach(id =>
+      document.getElementById(id).textContent = '$0.00');
     return;
   }
-
   c.innerHTML = cart.map((item, idx) => `
     <div class="cart-item" id="cart-item-${idx}">
-      <img src="${item.img}" alt="${item.name}" class="cart-item-img" onerror="this.style.background='#f0ede8';this.removeAttribute('src')">
+      <img src="${item.img}" alt="${item.name}" class="cart-item-img"
+           onerror="this.style.background='#f0ede8';this.removeAttribute('src')">
       <div class="cart-item-info">
         <p class="cart-item-name">${item.name}</p>
         <p class="cart-item-price">$${item.price.toFixed(2)} each</p>
@@ -56,15 +87,15 @@ function renderCart() {
       </div>
     </div>`).join('');
 
-  gsap.fromTo('.cart-item', { x: 30, opacity: 0 },
-    { x: 0, opacity: 1, duration: 0.35, stagger: 0.07, ease: 'power2.out' });
+  gsap.fromTo('.cart-item',
+    { x: 30, opacity: 0 },
+    { x: 0,  opacity: 1, duration: 0.35, stagger: 0.07, ease: 'power2.out' });
 
   const sub  = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const ship = getShipping(sub);
   document.getElementById('cartSubtotal').textContent = '$' + sub.toFixed(2);
   document.getElementById('cartShipping').textContent = ship === 0 ? '🎉 Free!' : '$' + ship.toFixed(2);
   document.getElementById('cartTotal').textContent    = '$' + (sub + ship).toFixed(2);
-
   gsap.fromTo('#cartTotal', { color: '#d4a843' }, { color: '#222', duration: 0.8 });
 }
 
@@ -79,6 +110,8 @@ function addToCart(name, price, img, btn) {
   btn.classList.add('added');
   gsap.fromTo(btn, { scale: 0.9 }, { scale: 1, duration: 0.3, ease: 'bounce' });
   setTimeout(() => { btn.textContent = 'Add to Cart'; btn.classList.remove('added'); }, 1400);
+
+  showToast(name + ' added to cart', '🛒');
 }
 
 function changeQty(idx, delta) {
@@ -100,20 +133,17 @@ function removeItem(idx) {
 }
 
 // ════════════════════════════════════════════
-//  WHATSAPP ORDER — sends order to seller
+//  WHATSAPP ORDER
 // ════════════════════════════════════════════
 function sendOrderToWhatsApp(custName, custPhone, custAddress) {
   const sub   = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const ship  = getShipping(sub);
   const total = (sub + ship).toFixed(2);
-
-  const orderDate = new Date().toLocaleDateString('en-US', {
-    year: 'numeric', month: 'long', day: 'numeric',
-    hour: '2-digit', minute: '2-digit'
+  const date  = new Date().toLocaleDateString('en-US', {
+    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
   });
 
-  let msg = `🛍️ *NEW ORDER — Ireme Creations*\n`;
-  msg += `📅 ${orderDate}\n\n`;
+  let msg = `🛍️ *NEW ORDER — Ireme Creations*\n📅 ${date}\n\n`;
   msg += `👤 *Customer:* ${custName || 'Not provided'}\n`;
   msg += `📱 *Phone:* ${custPhone || 'Not provided'}\n`;
   msg += `📍 *Address:* ${custAddress || 'Not provided'}\n\n`;
@@ -123,11 +153,9 @@ function sendOrderToWhatsApp(custName, custPhone, custAddress) {
   });
   msg += `\n💵 Subtotal: $${sub.toFixed(2)}\n`;
   msg += `🚚 Shipping: ${ship === 0 ? 'FREE 🎉' : '$' + ship.toFixed(2)}\n`;
-  msg += `✅ *TOTAL: $${total}*\n\n`;
-  msg += `_Sent from Ireme Creations website_`;
+  msg += `✅ *TOTAL: $${total}*\n\n_Sent from Ireme Creations website_`;
 
-  const encoded = encodeURIComponent(msg);
-  window.open(`https://wa.me/${SELLER_WHATSAPP}?text=${encoded}`, '_blank');
+  window.open(`https://wa.me/${SELLER_WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
   return { sub, ship, total };
 }
 
@@ -137,21 +165,21 @@ function sendOrderToWhatsApp(custName, custPhone, custAddress) {
 function flyToCart(btn) {
   const btnRect  = btn.getBoundingClientRect();
   const cartRect = document.getElementById('cartBtn').getBoundingClientRect();
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 7; i++) {
     const p = document.createElement('div');
     p.className = 'fly-particle';
     document.body.appendChild(p);
     gsap.set(p, {
       x: btnRect.left + btnRect.width / 2,
       y: btnRect.top  + btnRect.height / 2,
-      opacity: 1, scale: gsap.utils.random(0.5, 1.2)
+      opacity: 1, scale: gsap.utils.random(0.5, 1.3)
     });
     gsap.to(p, {
-      x: cartRect.left + cartRect.width / 2 + gsap.utils.random(-15, 15),
+      x: cartRect.left + cartRect.width / 2 + gsap.utils.random(-18, 18),
       y: cartRect.top  + cartRect.height / 2,
       opacity: 0, scale: 0,
-      duration: gsap.utils.random(0.5, 0.8),
-      delay:    gsap.utils.random(0, 0.15),
+      duration: gsap.utils.random(0.45, 0.75),
+      delay:    gsap.utils.random(0, 0.12),
       ease: 'power2.in',
       onComplete: () => p.remove()
     });
@@ -169,7 +197,7 @@ function initCursor() {
     gsap.to(dot,  { x: e.clientX, y: e.clientY, duration: 0.05 });
   });
   document.querySelectorAll('.magnetic, button, a, input').forEach(el => {
-    el.addEventListener('mouseenter', () => gsap.to(glow, { scale: 1.6, duration: 0.25 }));
+    el.addEventListener('mouseenter', () => gsap.to(glow, { scale: 1.7, duration: 0.25 }));
     el.addEventListener('mouseleave', () => gsap.to(glow, { scale: 1,   duration: 0.25 }));
   });
 }
@@ -183,16 +211,16 @@ function initMagnetic() {
       const rect = this.getBoundingClientRect();
       const dx = e.clientX - (rect.left + rect.width / 2);
       const dy = e.clientY - (rect.top  + rect.height / 2);
-      gsap.to(this, { x: dx * 0.3, y: dy * 0.3, duration: 0.3, ease: 'power2.out' });
+      gsap.to(this, { x: dx * 0.32, y: dy * 0.32, duration: 0.3, ease: 'power2.out' });
     });
     el.addEventListener('mouseleave', function() {
-      gsap.to(this, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.4)' });
+      gsap.to(this, { x: 0, y: 0, duration: 0.55, ease: 'elastic.out(1, 0.4)' });
     });
   });
 }
 
 // ════════════════════════════════════════════
-//  RIPPLE ON BUTTONS
+//  RIPPLE
 // ════════════════════════════════════════════
 function addRipple(e) {
   const btn  = e.currentTarget;
@@ -207,40 +235,63 @@ function addRipple(e) {
 }
 
 // ════════════════════════════════════════════
-//  INTERACTIVE CRAFT CANVAS ANIMATION
+//  INTERACTIVE CRAFT CANVAS
 // ════════════════════════════════════════════
 function initCraftCanvas() {
   const canvas = document.getElementById('craftCanvas');
   if (!canvas) return;
-  const ctx    = canvas.getContext('2d');
-  const W      = canvas.width;
-  const H      = canvas.height;
+  const ctx = canvas.getContext('2d');
+  const W   = canvas.width  = canvas.offsetWidth  || 260;
+  const H   = canvas.height = canvas.offsetHeight || 200;
 
-  // Product-themed items that orbit & interact
-  const items = [
-    { emoji: '🧶', x: W*0.2,  y: H*0.3,  vx: 0.5,  vy: 0.3,  size: 22, angle: 0, spin: 0.02  },
-    { emoji: '🪵', x: W*0.7,  y: H*0.5,  vx: -0.4, vy: 0.5,  size: 20, angle: 0, spin: -0.015 },
-    { emoji: '🖼️', x: W*0.5,  y: H*0.2,  vx: 0.3,  vy: -0.4, size: 22, angle: 0, spin: 0.018  },
-    { emoji: '🔑', x: W*0.8,  y: H*0.25, vx: -0.5, vy: 0.35, size: 19, angle: 0, spin: -0.02  },
-    { emoji: '💎', x: W*0.3,  y: H*0.7,  vx: 0.4,  vy: -0.3, size: 18, angle: 0, spin: 0.025  },
-    { emoji: '🌿', x: W*0.6,  y: H*0.75, vx: -0.3, vy: -0.4, size: 21, angle: 0, spin: -0.016 },
+  const ITEMS = [
+    { emoji:'🧶', x:W*.2,  y:H*.3,  vx:.55, vy:.30, size:24, angle:0, spin: .021 },
+    { emoji:'🪵', x:W*.72, y:H*.5,  vx:-.42,vy:.50, size:22, angle:0, spin:-.016 },
+    { emoji:'🖼️', x:W*.5,  y:H*.18, vx:.32, vy:-.42,size:24, angle:0, spin: .019 },
+    { emoji:'🔑', x:W*.82, y:H*.25, vx:-.50,vy:.36, size:20, angle:0, spin:-.022 },
+    { emoji:'💎', x:W*.3,  y:H*.72, vx:.42, vy:-.32,size:20, angle:0, spin: .026 },
+    { emoji:'🌿', x:W*.62, y:H*.78, vx:-.32,vy:-.42,size:22, angle:0, spin:-.017 },
   ];
 
-  // Sparkle particles
-  const sparks = Array.from({ length: 20 }, () => ({
-    x: Math.random() * W,
-    y: Math.random() * H,
-    r: Math.random() * 2 + 0.5,
+  const sparks = Array.from({length:26}, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    r: Math.random() * 2 + .5,
     alpha: Math.random(),
-    speed: Math.random() * 0.01 + 0.005,
+    speed: Math.random() * .012 + .005,
     phase: Math.random() * Math.PI * 2,
   }));
 
+  // Click burst particles
+  let bursts = [];
+
   let mouseX = W / 2, mouseY = H / 2;
   canvas.addEventListener('mousemove', e => {
-    const rect = canvas.getBoundingClientRect();
-    mouseX = (e.clientX - rect.left) * (W / rect.width);
-    mouseY = (e.clientY - rect.top)  * (H / rect.height);
+    const r = canvas.getBoundingClientRect();
+    mouseX = (e.clientX - r.left) * (W / r.width);
+    mouseY = (e.clientY - r.top)  * (H / r.height);
+  });
+
+  // Click → spark burst on canvas
+  canvas.addEventListener('click', e => {
+    const r = canvas.getBoundingClientRect();
+    const cx = (e.clientX - r.left) * (W / r.width);
+    const cy = (e.clientY - r.top)  * (H / r.height);
+    for (let i = 0; i < 14; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 3.5 + 1;
+      bursts.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1, decay: Math.random() * 0.03 + 0.02,
+        r: Math.random() * 3 + 1.5,
+        color: Math.random() > 0.5 ? '#d4a843' : '#13b113',
+      });
+    }
+    // Pulse canvas box
+    gsap.fromTo('.hero-anim-box',
+      { boxShadow: '0 0 0 3px rgba(212,168,67,0.7)' },
+      { boxShadow: '0 8px 36px rgba(0,0,0,0.32)', duration: 0.7, ease: 'power2.out' });
   });
 
   let frame = 0;
@@ -248,78 +299,77 @@ function initCraftCanvas() {
   function draw() {
     ctx.clearRect(0, 0, W, H);
 
-    // Background gradient
-    const grad = ctx.createRadialGradient(W/2, H/2, 10, W/2, H/2, H*0.8);
-    grad.addColorStop(0, 'rgba(30,30,20,0.0)');
-    grad.addColorStop(1, 'rgba(10,10,5,0.6)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
+    // BG gradient
+    const grad = ctx.createRadialGradient(W/2,H/2,10, W/2,H/2,H*.85);
+    grad.addColorStop(0, 'rgba(30,28,18,0.0)');
+    grad.addColorStop(1, 'rgba(10,9,4,0.55)');
+    ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
 
     // Sparkles
     sparks.forEach(s => {
-      s.alpha = 0.4 + 0.5 * Math.sin(frame * s.speed + s.phase);
+      s.alpha = .35 + .55 * Math.sin(frame * s.speed + s.phase);
       ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
       ctx.fillStyle = `rgba(212,168,67,${s.alpha})`;
       ctx.fill();
     });
 
-    // Connective lines between nearby items
-    for (let i = 0; i < items.length; i++) {
-      for (let j = i + 1; j < items.length; j++) {
-        const dx = items[i].x - items[j].x;
-        const dy = items[i].y - items[j].y;
+    // Connection lines
+    for (let i = 0; i < ITEMS.length; i++) {
+      for (let j = i+1; j < ITEMS.length; j++) {
+        const dx   = ITEMS[i].x - ITEMS[j].x;
+        const dy   = ITEMS[i].y - ITEMS[j].y;
         const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 90) {
+        if (dist < 95) {
           ctx.beginPath();
-          ctx.moveTo(items[i].x, items[i].y);
-          ctx.lineTo(items[j].x, items[j].y);
-          ctx.strokeStyle = `rgba(212,168,67,${0.25 * (1 - dist/90)})`;
-          ctx.lineWidth = 0.8;
-          ctx.stroke();
+          ctx.moveTo(ITEMS[i].x, ITEMS[i].y);
+          ctx.lineTo(ITEMS[j].x, ITEMS[j].y);
+          ctx.strokeStyle = `rgba(212,168,67,${.28 * (1 - dist/95)})`;
+          ctx.lineWidth = .9; ctx.stroke();
         }
       }
     }
 
     // Items
-    items.forEach(item => {
-      // Mouse repulsion — gentle push away
-      const mdx  = item.x - mouseX;
-      const mdy  = item.y - mouseY;
-      const mdist = Math.sqrt(mdx*mdx + mdy*mdy);
-      if (mdist < 60) {
-        item.vx += (mdx / mdist) * 0.3;
-        item.vy += (mdy / mdist) * 0.3;
-      }
+    ITEMS.forEach(item => {
+      // Mouse repulsion
+      const mdx = item.x - mouseX, mdy = item.y - mouseY;
+      const md  = Math.sqrt(mdx*mdx + mdy*mdy);
+      if (md < 65) { item.vx += (mdx/md)*.35; item.vy += (mdy/md)*.35; }
 
-      // Move
-      item.x += item.vx;
-      item.y += item.vy;
-      item.angle += item.spin;
+      item.x += item.vx; item.y += item.vy; item.angle += item.spin;
+      item.vx *= .994;   item.vy *= .994;
 
-      // Dampen velocity
-      item.vx *= 0.995;
-      item.vy *= 0.995;
-      // Keep min speed
       const spd = Math.sqrt(item.vx*item.vx + item.vy*item.vy);
-      if (spd < 0.2) { item.vx *= 1.5; item.vy *= 1.5; }
+      if (spd < .18) { item.vx *= 1.6; item.vy *= 1.6; }
 
-      // Bounce off walls
       if (item.x < item.size) { item.x = item.size; item.vx = Math.abs(item.vx); }
-      if (item.x > W - item.size) { item.x = W - item.size; item.vx = -Math.abs(item.vx); }
+      if (item.x > W-item.size){ item.x = W-item.size; item.vx=-Math.abs(item.vx);}
       if (item.y < item.size) { item.y = item.size; item.vy = Math.abs(item.vy); }
-      if (item.y > H - item.size) { item.y = H - item.size; item.vy = -Math.abs(item.vy); }
+      if (item.y > H-item.size){ item.y = H-item.size; item.vy=-Math.abs(item.vy);}
 
-      // Draw emoji
       ctx.save();
       ctx.translate(item.x, item.y);
       ctx.rotate(item.angle);
       ctx.font = `${item.size}px serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.globalAlpha = 0.92;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.globalAlpha = .9;
       ctx.fillText(item.emoji, 0, 0);
       ctx.restore();
+    });
+
+    // Click burst particles
+    bursts = bursts.filter(b => b.life > 0);
+    bursts.forEach(b => {
+      b.x += b.vx; b.y += b.vy;
+      b.vy += .08; // gravity
+      b.life -= b.decay;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+      ctx.fillStyle = b.color;
+      ctx.globalAlpha = Math.max(0, b.life);
+      ctx.fill();
+      ctx.globalAlpha = 1;
     });
 
     frame++;
@@ -327,69 +377,73 @@ function initCraftCanvas() {
   }
   draw();
 
-  // Dot indicators (one per item, cycling)
+  // Dot indicators
   const dotsEl = document.getElementById('animDots');
   if (dotsEl) {
-    items.forEach((_, i) => {
+    ITEMS.forEach((_, i) => {
       const d = document.createElement('div');
       d.className = 'anim-dot' + (i === 0 ? ' active' : '');
       dotsEl.appendChild(d);
     });
-    let activeDot = 0;
+    let active = 0;
     setInterval(() => {
-      dotsEl.querySelectorAll('.anim-dot').forEach((d, i) => {
-        d.classList.toggle('active', i === activeDot);
-      });
-      activeDot = (activeDot + 1) % items.length;
-    }, 1200);
+      dotsEl.querySelectorAll('.anim-dot').forEach((d, i) => d.classList.toggle('active', i === active));
+      active = (active + 1) % ITEMS.length;
+    }, 1100);
   }
 }
 
 // ════════════════════════════════════════════
-//  HERO ANIMATIONS
+//  HERO ANIMATIONS + PARALLAX
 // ════════════════════════════════════════════
 function initHero() {
   const floaters = document.getElementById('heroFloaters');
-  const emojis = ['🛍','✨','🎀','💎','🌟','🔑','🖼','🏡'];
-  emojis.forEach((em, i) => {
+  ['🛍','✨','🎀','💎','🌟','🔑','🖼','🏡'].forEach((em, i) => {
     const d = document.createElement('div');
-    d.className = 'floater';
-    d.textContent = em;
-    d.style.cssText = `left:${55 + (i * 4)}%; top:${10 + (i % 3) * 28}%; animation-delay:${i * 0.5}s`;
+    d.className = 'floater'; d.textContent = em;
+    d.style.cssText = `left:${55 + i*4}%; top:${10 + (i%3)*28}%; animation-delay:${i*.5}s`;
     floaters.appendChild(d);
   });
 
   // hero particle bg
   const bg = document.getElementById('heroBg');
-  for (let i = 0; i < 22; i++) {
+  for (let i = 0; i < 24; i++) {
     const p = document.createElement('div');
     p.style.cssText = `
       position:absolute; border-radius:50%;
-      background:rgba(212,168,67,${Math.random() * 0.10 + 0.03});
-      width:${Math.random() * 60 + 10}px; height:${Math.random() * 60 + 10}px;
-      left:${Math.random() * 100}%; top:${Math.random() * 100}%;
+      background:rgba(212,168,67,${Math.random()*.09+.03});
+      width:${Math.random()*65+10}px; height:${Math.random()*65+10}px;
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
     `;
     bg.appendChild(p);
     gsap.to(p, {
-      y: gsap.utils.random(-30, 30),
-      x: gsap.utils.random(-20, 20),
-      duration: gsap.utils.random(3, 7),
-      repeat: -1, yoyo: true, ease: 'sine.inOut',
-      delay: gsap.utils.random(0, 3)
+      y: gsap.utils.random(-35,35), x: gsap.utils.random(-22,22),
+      duration: gsap.utils.random(3,7), repeat:-1, yoyo:true, ease:'sine.inOut',
+      delay: gsap.utils.random(0,3)
     });
   }
 
-  // entrance timeline
-  gsap.set(['#heroTag','#heroTitle','#heroSub','#heroBtn'], { y: 30 });
+  // Parallax — hero content drifts slower on scroll
+  gsap.to('.hero-content', {
+    y: 60, ease: 'none',
+    scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true }
+  });
+  gsap.to('.hero-floaters', {
+    y: -40, ease: 'none',
+    scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true }
+  });
+
+  // Entrance timeline
+  gsap.set(['#heroTag','#heroTitle','#heroSub','#heroBtn'], { y: 35 });
   const tl = gsap.timeline({ delay: 0.2 });
-  tl.from('#mainHeader',    { y: -80, opacity: 0, duration: 0.7, ease: 'power3.out' })
-    .to('#heroTag',   { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.3')
-    .to('#heroTitle', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, '-=0.2')
-    .to('#heroSub',   { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.4')
-    .to('#heroBtn',   { opacity: 1, y: 0, duration: 0.5, ease: 'bounce'     }, '-=0.2')
-    .to('#heroAnimBox', { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out' }, '-=0.4')
-    .to('#sectionBar',  { opacity: 1, duration: 0.5 }, '-=0.1')
-    .to('.section-bar-line', { scaleX: 1, duration: 0.8, ease: 'power2.out' }, '-=0.3');
+  tl.from('#mainHeader',   { y: -80, opacity: 0, duration: 0.7, ease: 'power3.out' })
+    .to('#heroTag',        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out'   }, '-=0.3')
+    .to('#heroTitle',      { opacity: 1, y: 0, duration: 0.85, ease: 'power3.out'  }, '-=0.2')
+    .to('#heroSub',        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out'   }, '-=0.42')
+    .to('#heroBtn',        { opacity: 1, y: 0, duration: 0.5, ease: 'bounce'       }, '-=0.2')
+    .to('#heroAnimBox',    { opacity: 1, x: 0, duration: 0.75, ease: 'power3.out'  }, '-=0.45')
+    .to('#sectionBar',     { opacity: 1, duration: 0.5                              }, '-=0.1')
+    .to('.section-bar-line',{ scaleX: 1, duration: 0.9, ease: 'power2.out'         }, '-=0.3');
 }
 
 // ════════════════════════════════════════════
@@ -398,15 +452,22 @@ function initHero() {
 function initScrollAnimations() {
   gsap.utils.toArray('.product').forEach((card, i) => {
     gsap.to(card, {
-      opacity: 1, y: 0, duration: 0.6,
+      opacity: 1, y: 0, duration: 0.65,
       ease: 'power3.out',
       delay: (i % 4) * 0.08,
-      scrollTrigger: {
-        trigger: card,
-        start: 'top 88%',
-        toggleActions: 'play none none none',
-      }
+      scrollTrigger: { trigger: card, start: 'top 88%', toggleActions: 'play none none none' }
     });
+
+    // Extra pop for new products
+    if (card.classList.contains('new-badge-product')) {
+      gsap.fromTo(card,
+        { scale: 0.88, opacity: 0 },
+        {
+          scale: 1, opacity: 1, duration: 0.75, ease: 'back.out(1.6)',
+          scrollTrigger: { trigger: card, start: 'top 88%', toggleActions: 'play none none none' }
+        }
+      );
+    }
 
     // 3D tilt on hover
     card.addEventListener('mousemove', function(e) {
@@ -414,33 +475,45 @@ function initScrollAnimations() {
       const cx = (e.clientX - rect.left) / rect.width  - 0.5;
       const cy = (e.clientY - rect.top)  / rect.height - 0.5;
       gsap.to(this, {
-        rotateY: cx * 10, rotateX: -cy * 10,
-        scale: 1.03,
-        boxShadow: '0 16px 36px rgba(212,168,67,0.18)',
-        duration: 0.25, ease: 'power2.out',
-        transformPerspective: 600,
+        rotateY: cx * 11, rotateX: -cy * 11, scale: 1.035,
+        boxShadow: '0 18px 38px rgba(212,168,67,0.2)',
+        duration: 0.25, ease: 'power2.out', transformPerspective: 640,
       });
     });
     card.addEventListener('mouseleave', function() {
       gsap.to(this, {
         rotateY: 0, rotateX: 0, scale: 1,
-        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-        duration: 0.5, ease: 'elastic.out(1, 0.5)',
+        boxShadow: '0 2px 14px rgba(0,0,0,0.07)',
+        duration: 0.55, ease: 'elastic.out(1, 0.5)',
       });
     });
   });
 
-  // footer reveal
+  // Section bar counter (counts products visible)
   ScrollTrigger.create({
-    trigger: '.footer',
-    start: 'top 90%',
+    trigger: '.products-container', start: 'top 80%',
+    onEnter: () => {
+      const count = document.querySelectorAll('.product').length;
+      const title = document.querySelector('.section-bar-title');
+      let n = 0;
+      const interval = setInterval(() => {
+        n++;
+        title.textContent = `🛍️ All Products (${n})`;
+        if (n >= count) clearInterval(interval);
+      }, 30);
+    }
+  });
+
+  // Footer reveal
+  ScrollTrigger.create({
+    trigger: '.footer', start: 'top 90%',
     onEnter: () => gsap.to('.footer-inner', { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' })
   });
   gsap.set('.footer-inner', { y: 30 });
 }
 
 // ════════════════════════════════════════════
-//  HEADER SCROLL BEHAVIOUR
+//  HEADER SCROLL
 // ════════════════════════════════════════════
 function initHeaderScroll() {
   let lastY = 0;
@@ -448,24 +521,23 @@ function initHeaderScroll() {
     start: 'top -80',
     onUpdate: self => {
       const y = self.scroll();
-      if (y > lastY + 5 && y > 100) {
-        gsap.to('#mainHeader', { y: -70, duration: 0.3, ease: 'power2.in' });
-      } else if (y < lastY - 5) {
+      if (y > lastY + 5 && y > 100)
+        gsap.to('#mainHeader', { y: -76, duration: 0.3, ease: 'power2.in'  });
+      else if (y < lastY - 5)
         gsap.to('#mainHeader', { y: 0,   duration: 0.4, ease: 'power2.out' });
-      }
       lastY = y;
       const p = Math.min(y / 200, 1);
-      gsap.set('#mainHeader', { backgroundColor: `rgba(30,30,${Math.round(31 + p*10)}, ${0.95 + p*0.05})` });
+      gsap.set('#mainHeader', { backgroundColor: `rgba(30,30,${Math.round(31+p*10)},${0.95+p*0.05})` });
     }
   });
 }
 
 // ════════════════════════════════════════════
-//  SIDEBAR (fixed: GSAP starts from right:0)
+//  SIDEBAR
 // ════════════════════════════════════════════
 function openSidebar() {
   document.getElementById('overlay').classList.add('show');
-  gsap.to('#slideNav', { x: -260, duration: 0.45, ease: 'power3.out' });
+  gsap.to('#slideNav', { x: -280, duration: 0.45, ease: 'power3.out' });
   gsap.fromTo('.nav-item', { x: 30, opacity: 0 },
     { x: 0, opacity: 1, duration: 0.3, stagger: 0.06, ease: 'power2.out', delay: 0.2 });
 }
@@ -475,11 +547,11 @@ function closeSidebar() {
 }
 
 // ════════════════════════════════════════════
-//  CART DRAWER (fixed: x tracks actual off-screen)
+//  CART DRAWER
 // ════════════════════════════════════════════
 function openCartDrawer() {
   document.getElementById('cartOverlay').classList.add('show');
-  gsap.to('#cartDrawer', { x: -400, duration: 0.45, ease: 'power3.out' });
+  gsap.to('#cartDrawer', { x: -420, duration: 0.45, ease: 'power3.out' });
   renderCart();
 }
 function closeCartDrawer() {
@@ -488,27 +560,24 @@ function closeCartDrawer() {
 }
 
 // ════════════════════════════════════════════
-//  MODAL ANIMATIONS
+//  MODAL
 // ════════════════════════════════════════════
 function openModal(overlayId, boxId) {
-  const overlay = document.getElementById(overlayId);
-  const box     = document.getElementById(boxId);
-  overlay.classList.add('show');
-  gsap.fromTo(box,
-    { scale: 0.7, opacity: 0, y: 40 },
-    { scale: 1,   opacity: 1, y: 0, duration: 0.5, ease: 'bounce' });
+  document.getElementById(overlayId).classList.add('show');
+  gsap.fromTo(document.getElementById(boxId),
+    { scale: 0.72, opacity: 0, y: 44 },
+    { scale: 1,    opacity: 1, y: 0,  duration: 0.5, ease: 'bounce' });
 }
 function closeModal(overlayId, boxId) {
   const overlay = document.getElementById(overlayId);
-  const box     = document.getElementById(boxId);
-  gsap.to(box, {
+  gsap.to(document.getElementById(boxId), {
     scale: 0.85, opacity: 0, y: 20, duration: 0.3, ease: 'power2.in',
     onComplete: () => overlay.classList.remove('show')
   });
 }
 
 // ════════════════════════════════════════════
-//  SEARCH FILTER ANIMATION
+//  SEARCH
 // ════════════════════════════════════════════
 function animateSearchFilter(visible, hidden) {
   gsap.to(hidden, {
@@ -525,11 +594,16 @@ function animateSearchFilter(visible, hidden) {
 // ════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function () {
 
-  // GSAP initial positions — sidebar starts off-screen to the right
-  gsap.set('#slideNav',   { x: 0 });   // CSS puts it at right:-280px, GSAP will move x:-260
-  gsap.set('#cartDrawer', { x: 0 });   // CSS puts it at right:-420px, GSAP will move x:-400
+  // Inject scroll progress bar + toast into DOM
+  const bar = document.createElement('div'); bar.id = 'scrollBar'; document.body.prepend(bar);
+  const toast = document.createElement('div'); toast.id = 'toastBar'; document.body.appendChild(toast);
 
-  // init all systems
+  // GSAP initial positions
+  gsap.set('#slideNav',   { x: 0 });
+  gsap.set('#cartDrawer', { x: 0 });
+
+  // Init all systems
+  initScrollBar();
   initHero();
   initCraftCanvas();
   initCursor();
@@ -537,7 +611,7 @@ document.addEventListener('DOMContentLoaded', function () {
   initScrollAnimations();
   initHeaderScroll();
 
-  // ripple on all buttons
+  // Ripple on all buttons
   document.querySelectorAll('button').forEach(btn => btn.addEventListener('click', addRipple));
 
   // ── Add to cart ──────────────────────────
@@ -549,12 +623,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // ── Cart open/close ───────────────────────
+  // ── Cart ─────────────────────────────────
   document.getElementById('cartBtn').addEventListener('click', openCartDrawer);
   document.getElementById('closeCart').addEventListener('click', closeCartDrawer);
   document.getElementById('cartOverlay').addEventListener('click', closeCartDrawer);
 
-  // ── Clear cart ────────────────────────────
   document.getElementById('clearCart').addEventListener('click', () => {
     const items = document.querySelectorAll('.cart-item');
     if (items.length > 0) {
@@ -562,45 +635,32 @@ document.addEventListener('DOMContentLoaded', function () {
         x: 60, opacity: 0, stagger: 0.05, duration: 0.25, ease: 'power2.in',
         onComplete: () => { cart = []; updateCartCount(); renderCart(); }
       });
-    } else {
-      cart = []; updateCartCount(); renderCart();
-    }
+    } else { cart = []; updateCartCount(); renderCart(); }
   });
 
-  // ── Place Order → WhatsApp ────────────────
   document.getElementById('orderBtn').addEventListener('click', () => {
     if (cart.length === 0) {
-      gsap.fromTo('#orderBtn', { x: -8 }, { x: 0, duration: 0.4, ease: 'elastic.out(1,0.3)' });
+      gsap.fromTo('#orderBtn', {x:-9},{x:0,duration:0.4,ease:'elastic.out(1,0.3)'});
+      showToast('Your cart is empty!', '⚠️');
       return;
     }
-
     const custName    = document.getElementById('custName').value.trim();
     const custPhone   = document.getElementById('custPhone').value.trim();
     const custAddress = document.getElementById('custAddress').value.trim();
 
-    // Build summary for the confirmation modal
     const sub   = cart.reduce((s, i) => s + i.price * i.qty, 0);
     const ship  = getShipping(sub);
-    const lines = cart.map(i => `• ${i.name} ×${i.qty} — $${(i.price * i.qty).toFixed(2)}`).join('<br>');
+    const lines = cart.map(i => `• ${i.name} ×${i.qty} — $${(i.price*i.qty).toFixed(2)}`).join('<br>');
     document.getElementById('orderSummaryText').innerHTML =
-      lines + `<br><br><strong>Total: $${(sub + ship).toFixed(2)}</strong>`;
+      lines + `<br><br><strong>Total: $${(sub+ship).toFixed(2)}</strong>`;
 
-    // Send to WhatsApp
     sendOrderToWhatsApp(custName, custPhone, custAddress);
-
     closeCartDrawer();
-    setTimeout(() => {
-      openModal('orderModal', 'orderModalBox');
-      launchConfetti();
-    }, 450);
+    setTimeout(() => { openModal('orderModal','orderModalBox'); launchConfetti(); }, 450);
 
-    // Reset cart & form
-    cart = [];
-    updateCartCount();
-    renderCart();
+    cart = []; updateCartCount(); renderCart();
     ['custName','custPhone','custAddress'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
+      const el = document.getElementById(id); if (el) el.value = '';
     });
   });
 
@@ -629,7 +689,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const name  = document.getElementById('regName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
     const pass  = document.getElementById('regPassword').value.trim();
-    if (!name || !email || !pass) { shakeForm('registerForm'); return; }
+    if (!name||!email||!pass) { shakeForm('registerForm'); return; }
     currentUser = { name, email };
     onLoggedIn();
   });
@@ -653,30 +713,37 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('productsGrid').scrollIntoView({ behavior: 'smooth' });
   });
 
+  // ── Section bar pulse on hover ───────────
+  document.querySelectorAll('.section-bar-title').forEach(el => {
+    el.addEventListener('mouseenter', () =>
+      gsap.to(el, { scale: 1.04, color: '#d4a843', duration: 0.25, ease: 'power2.out' }));
+    el.addEventListener('mouseleave', () =>
+      gsap.to(el, { scale: 1, color: '#1e1e1f', duration: 0.3, ease: 'power2.out' }));
+  });
+
   updateCartCount();
 });
 
 // ════════════════════════════════════════════
-//  CONFETTI BURST
+//  CONFETTI
 // ════════════════════════════════════════════
 function launchConfetti() {
-  const colors = ['#d4a843','#e07b2a','#fff','#13b113','#ff6b6b'];
-  for (let i = 0; i < 60; i++) {
+  const colors = ['#d4a843','#e07b2a','#fff','#13b113','#ff6b6b','#a8d8a8'];
+  for (let i = 0; i < 65; i++) {
     const p = document.createElement('div');
     p.style.cssText = `
       position:fixed; pointer-events:none; z-index:9999;
-      width:${gsap.utils.random(6, 12)}px;
-      height:${gsap.utils.random(6, 12)}px;
-      border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
-      background:${colors[Math.floor(Math.random() * colors.length)]};
+      width:${gsap.utils.random(6,13)}px; height:${gsap.utils.random(6,13)}px;
+      border-radius:${Math.random()>.5?'50%':'2px'};
+      background:${colors[Math.floor(Math.random()*colors.length)]};
       left:50%; top:50%;
     `;
     document.body.appendChild(p);
     gsap.to(p, {
-      x: gsap.utils.random(-window.innerWidth / 2, window.innerWidth / 2),
-      y: gsap.utils.random(-300, 300),
-      rotation: gsap.utils.random(-360, 360),
-      opacity: 0, duration: gsap.utils.random(0.8, 1.6),
+      x: gsap.utils.random(-window.innerWidth/2, window.innerWidth/2),
+      y: gsap.utils.random(-320, 320),
+      rotation: gsap.utils.random(-360,360),
+      opacity: 0, duration: gsap.utils.random(0.8,1.7),
       ease: 'power2.out', onComplete: () => p.remove()
     });
   }
@@ -687,8 +754,8 @@ function launchConfetti() {
 // ════════════════════════════════════════════
 function shakeForm(id) {
   gsap.fromTo('#' + id, { x: -10 },
-    { x: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)',
-      keyframes: { x: [-10, 10, -8, 8, -5, 5, 0] } });
+    { x: 0, duration: 0.5, ease: 'elastic.out(1,0.3)',
+      keyframes: { x: [-10,10,-8,8,-5,5,0] } });
 }
 
 function switchTab(tab) {
@@ -709,7 +776,7 @@ function switchTab(tab) {
 }
 
 function onLoggedIn() {
-  closeModal('authModal', 'authModalBox');
+  closeModal('authModal','authModalBox');
   const link = document.getElementById('authLink');
   gsap.to(link, {
     opacity: 0, y: -10, duration: 0.2,
@@ -718,4 +785,5 @@ function onLoggedIn() {
       gsap.to(link, { opacity: 1, y: 0, duration: 0.3, ease: 'bounce' });
     }
   });
+  showToast('Welcome, ' + currentUser.name + '!', '👋');
 }
