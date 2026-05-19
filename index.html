@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ireme Creations — Handcrafted Rwandan artisan products. Keychains, wall art, decor and more.">
+  <meta name="theme-color" content="#1e1e1f">
+  <link rel="manifest" href="manifest.json">
   <title>Ireme Creations</title>
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-
-  <!-- GSAP + plugins -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
@@ -14,28 +16,48 @@
 </head>
 <body>
 
-<!-- ── CURSOR GLOW ── -->
+<!-- ── CUSTOM CURSOR ── -->
 <div id="cursorGlow"></div>
 <div id="cursorDot"></div>
+<div id="cursorTrail"></div>
 
-<!-- ══════════════ HEADER ══════════════ -->
+<!-- ── LOADING SCREEN ── -->
+<div id="loadingScreen">
+  <div class="loader-brand">🌿 Ireme Creations</div>
+  <div class="loader-bar"><div class="loader-fill" id="loaderFill"></div></div>
+  <p class="loader-text" id="loaderText">Loading crafts…</p>
+</div>
+
+<!-- ── TOAST NOTIFICATION ── -->
+<div id="toastContainer"></div>
+
+<!-- ── BACK TO TOP ── -->
+<button id="backToTop" aria-label="Back to top">↑</button>
+
+<!-- ══ HEADER ══ -->
 <header class="header" id="mainHeader">
-  <div class="search-box">
-    <span class="icon">🔍</span>
-    <input type="text" id="searchInput" placeholder="Search products...">
+  <div class="brand">
+    <span class="brand-leaf">🌿</span>
+    <span class="brand-name">Ireme Creations</span>
   </div>
 
-  <h1 id="title">Ireme Creations</h1>
+  <div class="search-box" id="searchBox">
+    <span class="icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search products…" autocomplete="off">
+    <div class="search-dropdown" id="searchDropdown"></div>
+  </div>
 
   <nav class="top-nav">
-    <span class="top-nav-link magnetic">Home</span>
-    <span class="top-nav-link magnetic">New Arrival</span>
-    <span class="top-nav-link magnetic">Best Sellers</span>
-    <span class="top-nav-link magnetic">Contact</span>
+    <span class="top-nav-link magnetic" data-section="home">Home</span>
+    <span class="top-nav-link magnetic" data-section="new">New Arrival</span>
+    <span class="top-nav-link magnetic" data-section="best">Best Sellers</span>
+    <span class="top-nav-link magnetic" data-section="contact">Contact</span>
   </nav>
 
-  <button class="cart-btn magnetic" id="cartBtn">
-    🛒 Cart <span class="cart-count" id="cartCount">0</span>
+  <button class="cart-btn magnetic" id="cartBtn" aria-label="Open cart">
+    <span class="cart-icon">🛒</span>
+    <span class="cart-label">Cart</span>
+    <span class="cart-count" id="cartCount">0</span>
   </button>
 
   <div class="auth-area">
@@ -46,41 +68,210 @@
   <button class="hamburger magnetic" id="hamburgerBtn" aria-label="Open menu">&#9776;</button>
 </header>
 
-<!-- ══════════════ HERO BANNER ══════════════ -->
+<!-- ══ HERO ══ -->
 <section class="hero" id="hero">
   <div class="hero-bg-particles" id="heroBg"></div>
   <div class="hero-content">
-    <p class="hero-tag" id="heroTag">✨ New Collection Available</p>
-    <h2 class="hero-title" id="heroTitle">Ireme Creations</h2>
-    <p class="hero-sub" id="heroSub">Unique artisan products made just for you</p>
-    <button class="hero-btn magnetic" id="heroBtn">Shop Now →</button>
+    <p class="hero-tag" id="heroTag">✨ Handcrafted in Rwanda</p>
+    <h2 class="hero-title" id="heroTitle">Ireme<br><em>Creations</em></h2>
+    <p class="hero-sub" id="heroSub">Unique artisan products, made with love and purpose</p>
+    <div class="hero-cta-row">
+      <button class="hero-btn magnetic" id="heroBtn">Shop Now →</button>
+      <button class="hero-btn-ghost magnetic" id="heroBtnGhost">Our Story</button>
+    </div>
+    <!-- LIVE STATS BAR -->
+    <div class="hero-stats" id="heroStats">
+      <div class="stat-item"><span class="stat-num" id="statProducts">21</span><span class="stat-label">Products</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><span class="stat-num" id="statOrders">340+</span><span class="stat-label">Orders</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><span class="stat-num" id="statRating">4.9★</span><span class="stat-label">Rating</span></div>
+    </div>
   </div>
+
   <div class="hero-floaters" id="heroFloaters"></div>
 
-  <!-- ── INTERACTIVE ANIMATION BOX ── -->
+  <!-- INTERACTIVE CRAFT CANVAS BOX -->
   <div class="hero-anim-box" id="heroAnimBox">
-    <div class="anim-box-label">Our Crafts</div>
-    <canvas id="craftCanvas" width="260" height="200"></canvas>
-    <div class="anim-box-dots" id="animDots"></div>
+    <div class="anim-box-header">
+      <span class="anim-box-label">Our Crafts</span>
+      <span class="anim-live-badge">● LIVE</span>
+    </div>
+    <canvas id="craftCanvas" width="280" height="210"></canvas>
+    <div class="anim-box-footer">
+      <div class="anim-box-dots" id="animDots"></div>
+      <span class="anim-interact-hint">Move cursor to interact</span>
+    </div>
   </div>
 </section>
 
-<!-- ══════════════ SIDEBAR ══════════════ -->
+<!-- ══ CATEGORY FILTER BAR ══ -->
+<div class="cat-bar" id="catBar">
+  <button class="cat-btn active" data-cat="all">All <span class="cat-count">21</span></button>
+  <button class="cat-btn" data-cat="keychains">🔑 Keychains <span class="cat-count">6</span></button>
+  <button class="cat-btn" data-cat="wall-art">🖼 Wall Art <span class="cat-count">6</span></button>
+  <button class="cat-btn" data-cat="decor">🏡 Decor <span class="cat-count">5</span></button>
+  <button class="cat-btn" data-cat="clothing">👗 Clothing <span class="cat-count">4</span></button>
+</div>
+
+<!-- ══ SECTION LABEL ══ -->
+<div class="section-header-bar" id="sectionBar">
+  <h2 class="section-bar-title" id="sectionBarTitle">🛍️ All Products</h2>
+  <div class="section-bar-line"></div>
+  <span class="sort-group">
+    <label class="sort-label">Sort:</label>
+    <select id="sortSelect" class="sort-select">
+      <option value="default">Default</option>
+      <option value="price-asc">Price ↑</option>
+      <option value="price-desc">Price ↓</option>
+      <option value="name">Name</option>
+    </select>
+  </span>
+</div>
+
+<!-- ══ PRODUCTS GRID ══ -->
+<div class="products-container" id="productsGrid">
+
+  <!-- ── PRODUCTS 1-17 (existing) ── -->
+  <section class="product" data-name="Crochet Keychain Set" data-price="8.99" data-cat="keychains" data-img="Image/Adorable and Easy 26 Crochet Keychain Ideas You'll….jfif" data-badge="best">
+    <div class="product-badges"><span class="badge badge-best">🏆 Best Seller</span></div>
+    <div class="product-img-wrap"><img src="Image/instagram (2).jfif" alt="Crochet Keychain Set" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Crochet Keychain Set</h2><p class="product-price">$8.99</p><div class="product-rating">★★★★★ <span>(42)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Handmade Tote Bag" data-price="12.99" data-cat="clothing" data-img="Image/Terzi mankenimiz olmayınca biz de birtakım ai….jfif" data-badge="new">
+    <div class="product-badges"><span class="badge badge-new">🆕 New</span></div>
+    <div class="product-img-wrap"><img src="Image/Terzi mankenimiz olmayınca biz de birtakım ai….jfif" alt="Handmade Tote Bag" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Handmade Tote Bag</h2><p class="product-price">$12.99</p><div class="product-rating">★★★★☆ <span>(18)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Boho Keyring" data-price="15.99" data-cat="keychains" data-img="Image/Instagram.jfif">
+    <div class="product-img-wrap"><img src="Image/Instagram.jfif" alt="Boho Keyring" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Boho Keyring</h2><p class="product-price">$15.99</p><div class="product-rating">★★★★★ <span>(31)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Macrame Wall Piece" data-price="18.99" data-cat="wall-art" data-img="Image/download (5).jfif" data-badge="best">
+    <div class="product-badges"><span class="badge badge-best">🏆 Best Seller</span></div>
+    <div class="product-img-wrap"><img src="Image/download (5).jfif" alt="Macrame Wall Piece" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Macrame Wall Piece</h2><p class="product-price">$18.99</p><div class="product-rating">★★★★★ <span>(57)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Mini Crochet Charm" data-price="7.57" data-cat="keychains" data-img="Image/My friends grandpa has one and I love it!! It's….jfif">
+    <div class="product-img-wrap"><img src="Image/My friends grandpa has one and I love it!! It's….jfif" alt="Mini Crochet Charm" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Mini Crochet Charm</h2><p class="product-price">$7.57</p><div class="product-rating">★★★★☆ <span>(22)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Camera Keychain" data-price="11.57" data-cat="keychains" data-img="Image/Save this crochet keychain camera if you want to….jfif" data-badge="new">
+    <div class="product-badges"><span class="badge badge-new">🆕 New</span></div>
+    <div class="product-img-wrap"><img src="Image/Save this crochet keychain camera if you want to….jfif" alt="Camera Keychain" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Camera Keychain</h2><p class="product-price">$11.57</p><div class="product-rating">★★★★★ <span>(14)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Wooden Wall Art" data-price="21.70" data-cat="wall-art" data-img="Image/Wood - Wood Art _ Facebook.jfif">
+    <div class="product-img-wrap"><img src="Image/Wood - Wood Art _ Facebook.jfif" alt="Wooden Wall Art" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Wooden Wall Art</h2><p class="product-price">$21.70</p><div class="product-rating">★★★★★ <span>(38)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Wall Sculpture" data-price="26.34" data-cat="wall-art" data-img="Image/барельеф.jfif" data-badge="best">
+    <div class="product-badges"><span class="badge badge-best">🏆 Best Seller</span></div>
+    <div class="product-img-wrap"><img src="Image/барельеф.jfif" alt="Wall Sculpture" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Wall Sculpture</h2><p class="product-price">$26.34</p><div class="product-rating">★★★★★ <span>(63)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Woven Basket Bag" data-price="15.99" data-cat="clothing" data-img="Image/Instagram (1).jfif" data-badge="new">
+    <div class="product-badges"><span class="badge badge-new">🆕 New</span></div>
+    <div class="product-img-wrap"><img src="Image/Instagram (1).jfif" alt="Woven Basket Bag" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Woven Basket Bag</h2><p class="product-price">$15.99</p><div class="product-rating">★★★★☆ <span>(9)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Minimalist Wall Clock" data-price="19.99" data-cat="decor" data-img="Image/Elevate your home with this stunning minimalist….jfif">
+    <div class="product-img-wrap"><img src="Image/Elevate your home with this stunning minimalist….jfif" alt="Minimalist Wall Clock" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Minimalist Wall Clock</h2><p class="product-price">$19.99</p><div class="product-rating">★★★★★ <span>(27)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Boho Wall Print" data-price="9.99" data-cat="wall-art" data-img="Image/Claim a free version now_ Go to our website_.jfif">
+    <div class="product-img-wrap"><img src="Image/Claim a free version now_ Go to our website_.jfif" alt="Boho Wall Print" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Boho Wall Print</h2><p class="product-price">$9.99</p><div class="product-rating">★★★★☆ <span>(16)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Wooden Decor Piece" data-price="14.99" data-cat="decor" data-img="Image/download (4).jfif">
+    <div class="product-img-wrap"><img src="Image/download (4).jfif" alt="Wooden Decor Piece" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Wooden Decor Piece</h2><p class="product-price">$14.99</p><div class="product-rating">★★★★★ <span>(33)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Round Wood Wall Art" data-price="17.99" data-cat="wall-art" data-img="Image/Crafted from the finest, rarest wood, this round….jfif">
+    <div class="product-img-wrap"><img src="Image/Crafted from the finest, rarest wood, this round….jfif" alt="Round Wood Wall Art" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Round Wood Wall Art</h2><p class="product-price">$17.99</p><div class="product-rating">★★★★★ <span>(41)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Carved Wood Frame" data-price="22.99" data-cat="wall-art" data-img="Image/download (3).jfif">
+    <div class="product-img-wrap"><img src="Image/download (3).jfif" alt="Carved Wood Frame" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Carved Wood Frame</h2><p class="product-price">$22.99</p><div class="product-rating">★★★★☆ <span>(20)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Shelf Display Set" data-price="29.99" data-cat="decor" data-img="Image/download (2).jfif" data-badge="best">
+    <div class="product-badges"><span class="badge badge-best">🏆 Best Seller</span></div>
+    <div class="product-img-wrap"><img src="Image/download (2).jfif" alt="Shelf Display Set" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Shelf Display Set</h2><p class="product-price">$29.99</p><div class="product-rating">★★★★★ <span>(52)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Space-Saving Rack" data-price="34.99" data-cat="decor" data-img="Image/Living in a city often means dealing with limited….jfif">
+    <div class="product-img-wrap"><img src="Image/Living in a city often means dealing with limited….jfif" alt="Space-Saving Rack" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Space-Saving Rack</h2><p class="product-price">$34.99</p><div class="product-rating">★★★★☆ <span>(11)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="LED Wall Decor" data-price="39.99" data-cat="decor" data-img="Image/Upgrade your home with this modern LED wall decor….jfif" data-badge="new">
+    <div class="product-badges"><span class="badge badge-new">🆕 New</span></div>
+    <div class="product-img-wrap"><img src="Image/Upgrade your home with this modern LED wall decor….jfif" alt="LED Wall Decor" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>LED Wall Decor</h2><p class="product-price">$39.99</p><div class="product-rating">★★★★★ <span>(29)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <!-- ══ 4 NEW PRODUCTS (18-21) ══ -->
+  <section class="product" data-name="Raffia Clutch Bag" data-price="24.99" data-cat="clothing" data-img="Image/Instagram.jfif" data-badge="new">
+    <div class="product-badges"><span class="badge badge-new">🆕 New</span></div>
+    <div class="product-img-wrap"><img src="Image/Instagram.jfif" alt="Raffia Clutch Bag" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Raffia Clutch Bag</h2><p class="product-price">$24.99</p><div class="product-rating">★★★★★ <span>(7)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Woven Grass Keyring" data-price="6.99" data-cat="keychains" data-img="Image/Adorable and Easy 26 Crochet Keychain Ideas You'll….jfif" data-badge="new">
+    <div class="product-badges"><span class="badge badge-new">🆕 New</span></div>
+    <div class="product-img-wrap"><img src="Image/Adorable and Easy 26 Crochet Keychain Ideas You'll….jfif" alt="Woven Grass Keyring" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Woven Grass Keyring</h2><p class="product-price">$6.99</p><div class="product-rating">★★★★★ <span>(5)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Bamboo Wall Panel" data-price="45.00" data-cat="wall-art" data-img="Image/барельеф.jfif" data-badge="best">
+    <div class="product-badges"><span class="badge badge-best">🏆 Best Seller</span></div>
+    <div class="product-img-wrap"><img src="Image/барельеф.jfif" alt="Bamboo Wall Panel" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Bamboo Wall Panel</h2><p class="product-price">$45.00</p><div class="product-rating">★★★★★ <span>(12)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+  <section class="product" data-name="Scented Beeswax Candle" data-price="13.50" data-cat="decor" data-img="Image/Elevate your home with this stunning minimalist….jfif" data-badge="new">
+    <div class="product-badges"><span class="badge badge-new">🆕 New</span></div>
+    <div class="product-img-wrap"><img src="Image/Elevate your home with this stunning minimalist….jfif" alt="Scented Beeswax Candle" loading="lazy"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
+    <div class="product-body"><h2>Scented Beeswax Candle</h2><p class="product-price">$13.50</p><div class="product-rating">★★★★★ <span>(19)</span></div><button class="add-to-cart magnetic">Add to Cart</button></div>
+  </section>
+
+</div><!-- /products-container -->
+
+<!-- ══ SIDEBAR ══ -->
 <div class="slide-nav" id="slideNav">
   <div class="slide-nav-header">
-    <span>🛒 Ireme Creations</span>
+    <span>🌿 Ireme Creations</span>
     <button class="close-btn" id="closeBtn">&times;</button>
   </div>
   <ul class="slide-nav-links">
     <li class="nav-item active">🏠 <span>Home</span></li>
-    <li class="nav-item">🆕 <span>New Arrival</span></li>
+    <li class="nav-item">🆕 <span>New Arrivals</span></li>
   </ul>
   <div class="nav-section-label">Shop</div>
   <ul class="slide-nav-links">
     <li class="nav-item">🏆 <span>Best Sellers</span></li>
-    <li class="nav-item">🔥 <span>Deals</span></li>
+    <li class="nav-item">🔑 <span>Keychains</span></li>
+    <li class="nav-item">🖼 <span>Wall Art</span></li>
+    <li class="nav-item">🏡 <span>Decor</span></li>
+    <li class="nav-item">👗 <span>Clothing</span></li>
   </ul>
-  <div class="nav-section-label">Other</div>
+  <div class="nav-section-label">Info</div>
   <ul class="slide-nav-links">
     <li class="nav-item">📞 <span>Contact</span></li>
     <li class="nav-item">ℹ️ <span>About Us</span></li>
@@ -88,7 +279,7 @@
 </div>
 <div class="overlay" id="overlay"></div>
 
-<!-- ══════════════ CART DRAWER ══════════════ -->
+<!-- ══ CART DRAWER ══ -->
 <div class="cart-drawer" id="cartDrawer">
   <div class="cart-drawer-header">
     <h2>🛒 Your Cart</h2>
@@ -101,22 +292,19 @@
     <div class="cart-total-row"><span>Subtotal</span><span id="cartSubtotal">$0.00</span></div>
     <div class="cart-total-row"><span>Shipping</span><span id="cartShipping">$0.00</span></div>
     <div class="cart-total-row total-bold"><span>Total</span><span id="cartTotal">$0.00</span></div>
-
-    <!-- Customer info fields -->
     <div class="customer-info" id="customerInfo">
-      <p class="info-label">📋 Your details (for order confirmation)</p>
-      <input type="text" id="custName" placeholder="Your full name" class="cust-input">
-      <input type="tel" id="custPhone" placeholder="Your WhatsApp number" class="cust-input">
-      <input type="text" id="custAddress" placeholder="Delivery address" class="cust-input">
+      <p class="info-label">📋 Your details for WhatsApp order</p>
+      <input type="text" id="custName"    placeholder="Your full name *"       class="cust-input">
+      <input type="tel"  id="custPhone"   placeholder="Your WhatsApp number *" class="cust-input">
+      <input type="text" id="custAddress" placeholder="Delivery address *"     class="cust-input">
     </div>
-
-    <button class="order-btn magnetic" id="orderBtn">Place Order via WhatsApp</button>
+    <button class="order-btn magnetic" id="orderBtn">📲 Place Order via WhatsApp</button>
     <button class="clear-btn" id="clearCart">Clear Cart</button>
   </div>
 </div>
 <div class="cart-overlay" id="cartOverlay"></div>
 
-<!-- ══════════════ AUTH MODAL ══════════════ -->
+<!-- ══ AUTH MODAL ══ -->
 <div class="modal-overlay" id="authModal">
   <div class="modal" id="authModalBox">
     <button class="modal-close" id="closeAuth">&times;</button>
@@ -142,100 +330,31 @@
   </div>
 </div>
 
-<!-- ══════════════ ORDER MODAL ══════════════ -->
+<!-- ══ ORDER SUCCESS MODAL ══ -->
 <div class="modal-overlay" id="orderModal">
   <div class="modal order-modal" id="orderModalBox">
     <div class="order-success-icon">✅</div>
     <h3>Order Sent!</h3>
     <p id="orderSummaryText"></p>
-    <p class="order-whatsapp-note">📲 Your order details have been sent to our WhatsApp. We'll confirm shortly!</p>
+    <p class="order-whatsapp-note">📲 Your order has been sent to our WhatsApp. We'll confirm shortly!</p>
     <button class="submit-btn magnetic" id="closeOrder">Done</button>
   </div>
 </div>
 
-<!-- ══════════════ SECTION LABEL ══════════════ -->
-<div class="section-header-bar" id="sectionBar">
-  <h2 class="section-bar-title">🛍️ All Products</h2>
-  <div class="section-bar-line"></div>
-</div>
-
-<!-- ══════════════ PRODUCTS ══════════════ -->
-<div class="products-container" id="productsGrid">
-  <section class="product" data-name="Product 1" data-price="8.99" data-img="Image/Adorable and Easy 26 Crochet Keychain Ideas You'll….jfif">
-    <div class="product-img-wrap"><img src="Image/instagram (2).jfif" alt="Product 1"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 1</h2><p>$8.99</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 2" data-price="12.99" data-img="Image/Terzi mankenimiz olmayınca biz de birtakım ai….jfif">
-    <div class="product-img-wrap"><img src="Image/Terzi mankenimiz olmayınca biz de birtakım ai….jfif" alt="Product 2"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 2</h2><p>$12.99</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 3" data-price="15.99" data-img="Image/Instagram.jfif">
-    <div class="product-img-wrap"><img src="Image/Instagram.jfif" alt="Product 3"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 3</h2><p>$15.99</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 4" data-price="18.99" data-img="Image/download (5).jfif">
-    <div class="product-img-wrap"><img src="Image/download (5).jfif" alt="Product 4"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 4</h2><p>$18.99</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 5" data-price="7.57" data-img="Image/My friends grandpa has one and I love it!! It's….jfif">
-    <div class="product-img-wrap"><img src="Image/My friends grandpa has one and I love it!! It's….jfif" alt="Product 5"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 5</h2><p>$7.57</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 6" data-price="11.57" data-img="Image/Save this crochet keychain camera if you want to….jfif">
-    <div class="product-img-wrap"><img src="Image/Save this crochet keychain camera if you want to….jfif" alt="Product 6"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 6</h2><p>$11.57</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 7" data-price="21.70" data-img="Image/Wood - Wood Art _ Facebook.jfif">
-    <div class="product-img-wrap"><img src="Image/Wood - Wood Art _ Facebook.jfif" alt="Product 7"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 7</h2><p>$21.70</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 8" data-price="26.34" data-img="Image/барельеф.jfif">
-    <div class="product-img-wrap"><img src="Image/барельеф.jfif" alt="Product 8"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 8</h2><p>$26.34</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 9" data-price="15.99" data-img="Image/Instagram (1).jfif">
-    <div class="product-img-wrap"><img src="Image/Instagram (1).jfif" alt="Product 9"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 9</h2><p>$15.99</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 10" data-price="19.99" data-img="Image/Elevate your home with this stunning minimalist….jfif">
-    <div class="product-img-wrap"><img src="Image/Elevate your home with this stunning minimalist….jfif" alt="Product 10"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 10</h2><p>$19.99</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 11" data-price="9.99" data-img="Image/Claim a free version now_ Go to our website_.jfif">
-    <div class="product-img-wrap"><img src="Image/Claim a free version now_ Go to our website_.jfif" alt="Product 11"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 11</h2><p>$9.99</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 12" data-price="14.99" data-img="Image/download (4).jfif">
-    <div class="product-img-wrap"><img src="Image/download (4).jfif" alt="Product 12"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 12</h2><p>$14.99</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 13" data-price="17.99" data-img="Image/Crafted from the finest, rarest wood, this round….jfif">
-    <div class="product-img-wrap"><img src="Image/Crafted from the finest, rarest wood, this round….jfif" alt="Product 13"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 13</h2><p>$17.99</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 14" data-price="22.99" data-img="Image/download (3).jfif">
-    <div class="product-img-wrap"><img src="Image/download (3).jfif" alt="Product 14"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 14</h2><p>$22.99</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 15" data-price="29.99" data-img="Image/download (2).jfif">
-    <div class="product-img-wrap"><img src="Image/download (2).jfif" alt="Product 15"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 15</h2><p>$29.99</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 16" data-price="34.99" data-img="Image/Living in a city often means dealing with limited….jfif">
-    <div class="product-img-wrap"><img src="Image/Living in a city often means dealing with limited….jfif" alt="Product 16"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 16</h2><p>$34.99</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-  <section class="product" data-name="Product 17" data-price="39.99" data-img="Image/Upgrade your home with this modern LED wall decor….jfif">
-    <div class="product-img-wrap"><img src="Image/Upgrade your home with this modern LED wall decor….jfif" alt="Product 17"><div class="img-overlay"><span class="overlay-icon">👁</span>Quick View</div></div>
-    <h2>Product 17</h2><p>$39.99</p><button class="add-to-cart magnetic">Add to Cart</button>
-  </section>
-</div>
-
+<!-- ══ FOOTER ══ -->
 <footer id="footer" class="footer">
   <div class="footer-inner">
-    <h3>Copyright 2024 &mdash; Ireme Creations</h3>
-    <h3>Contact us: <a href="mailto:jeromecyiza@gmail.com">jeromecyiza@gmail.com</a></h3>
-    <h3>WhatsApp: <a href="https://wa.me/250791720024" target="_blank">+250 791 720 024</a></h3>
+    <div class="footer-brand">
+      <span class="footer-leaf">🌿</span>
+      <span class="footer-name">Ireme Creations</span>
+    </div>
+    <p class="footer-tagline">Handcrafted in Rwanda, delivered with love.</p>
+    <div class="footer-links">
+      <a href="mailto:jeromecyiza@gmail.com">✉️ jeromecyiza@gmail.com</a>
+      <a href="https://wa.me/250791720024" target="_blank">💬 +250 791 720 024</a>
+    </div>
+    <p class="footer-copy">© 2024 Ireme Creations — All rights reserved.</p>
+    <p class="footer-tech">Built with HTML · CSS · JavaScript · GSAP</p>
   </div>
 </footer>
 
