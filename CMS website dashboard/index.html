@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ireme CMS — Dashboard</title>
+  <link rel="stylesheet" href="cms.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon-wrap">🌿</div>
+    <div class="brand-text">
+      <div class="brand-title">Ireme CMS</div>
+      <div class="brand-sub">Admin Panel</div>
+    </div>
+  </div>
+
+  <nav>
+    <div class="sidebar-section-label">Main</div>
+    <a class="nav-link active" data-page="dashboard">
+      <span class="nav-icon">📊</span> Dashboard
+    </a>
+    <a class="nav-link" data-page="orders">
+      <span class="nav-icon">📦</span> Orders
+      <span class="nav-badge" id="pendingBadge">0</span>
+    </a>
+    <a class="nav-link" data-page="products">
+      <span class="nav-icon">🛍️</span> Products
+    </a>
+    <a class="nav-link" data-page="customers">
+      <span class="nav-icon">👥</span> Customers
+    </a>
+
+    <div class="sidebar-section-label">Reports</div>
+    <a class="nav-link" data-page="analytics">
+      <span class="nav-icon">📈</span> Analytics
+    </a>
+
+    <div class="sidebar-section-label">Settings</div>
+    <a class="nav-link" data-page="settings">
+      <span class="nav-icon">⚙️</span> Settings
+    </a>
+    <a class="nav-link" href="../index.html" target="_blank">
+      <span class="nav-icon">🌐</span> View Store
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="avatar">J</div>
+      <div class="user-info">
+        <div class="user-name">Jerome Cyiza</div>
+        <div class="user-role">Super Admin</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <button class="topbar-btn" id="sidebarToggle" style="display:none">☰</button>
+    <div>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-crumb" id="topbarCrumb">Ireme Creations / Dashboard</div>
+    </div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-search">
+      <span style="color:var(--muted);font-size:14px">🔍</span>
+      <input type="text" id="globalSearch" placeholder="Search anything…">
+    </div>
+    <div class="notif-wrap">
+      <button class="topbar-btn" id="notifBtn">🔔</button>
+      <div class="notif-dot" id="notifDot"></div>
+    </div>
+    <button class="topbar-btn" title="Refresh data" onclick="refreshAll()">↻</button>
+  </div>
+
+  <!-- ══ PAGE: DASHBOARD ══ -->
+  <div class="page active" id="page-dashboard">
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Revenue Overview</div>
+            <div class="chart-sub">Last 6 months</div>
+          </div>
+          <select class="filter-select" id="revenueRange" style="width:120px">
+            <option>6 months</option>
+            <option>3 months</option>
+          </select>
+        </div>
+        <canvas id="revenueChart" height="90"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">By Category</div>
+            <div class="chart-sub">Revenue split</div>
+          </div>
+        </div>
+        <canvas id="categoryChart" height="180"></canvas>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <!-- Recent orders -->
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Recent Orders</div>
+          <button class="btn btn-ghost btn-sm" onclick="navigate('orders')">View all →</button>
+        </div>
+        <div style="padding:16px 18px" id="recentOrders"></div>
+      </div>
+      <!-- Low stock -->
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">⚠️ Low Stock</div>
+          <button class="btn btn-ghost btn-sm" onclick="navigate('products')">Manage →</button>
+        </div>
+        <div style="padding:16px 18px" id="lowStockList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: ORDERS ══ -->
+  <div class="page" id="page-orders">
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title">All Orders</div>
+        <div class="table-filters">
+          <input class="filter-input" id="orderSearch" placeholder="Search customer…" oninput="renderOrdersTable()">
+          <select class="filter-select" id="orderStatusFilter" onchange="renderOrdersTable()">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="processing">Processing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="exportOrders()">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="ordersTable">
+          <thead>
+            <tr>
+              <th>Order ID</th><th>Customer</th><th>Items</th>
+              <th>Total</th><th>Status</th><th>Date</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTbody"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="ordersPag"></div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: PRODUCTS ══ -->
+  <div class="page" id="page-products">
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title">Products</div>
+        <div class="table-filters">
+          <input class="filter-input" id="prodSearch" placeholder="Search product…" oninput="renderProductsTable()">
+          <select class="filter-select" id="prodCatFilter" onchange="renderProductsTable()">
+            <option value="">All Categories</option>
+            <option value="keychains">Keychains</option>
+            <option value="wall-art">Wall Art</option>
+            <option value="decor">Decor</option>
+            <option value="clothing">Clothing</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="openProductModal()">+ Add Product</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="productsTable">
+          <thead>
+            <tr>
+              <th>Product</th><th>Category</th><th>Price</th>
+              <th>Stock</th><th>Sales</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productsTbody"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="productsPag"></div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: CUSTOMERS ══ -->
+  <div class="page" id="page-customers">
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title">Customers</div>
+        <div class="table-filters">
+          <input class="filter-input" id="custSearch" placeholder="Search customer…" oninput="renderCustomersTable()">
+          <select class="filter-select" id="custStatusFilter" onchange="renderCustomersTable()">
+            <option value="">All</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="openCustomerModal()">+ Add Customer</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th><th>Email</th><th>Phone</th><th>City</th>
+              <th>Orders</th><th>Spent</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="customersTbody"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="customersPag"></div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: ANALYTICS ══ -->
+  <div class="page" id="page-analytics">
+    <div class="stats-grid" id="analyticsStats"></div>
+    <div class="charts-row" style="grid-template-columns:1fr 1fr;margin-bottom:18px">
+      <div class="chart-card">
+        <div class="chart-header"><div class="chart-title">Orders by Status</div></div>
+        <canvas id="statusChart" height="160"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header"><div class="chart-title">Top Products by Sales</div></div>
+        <canvas id="topProdChart" height="160"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: SETTINGS ══ -->
+  <div class="page" id="page-settings">
+    <div style="max-width:540px">
+      <div class="table-card" style="padding:28px">
+        <div class="table-title" style="margin-bottom:22px;font-size:18px">Store Settings</div>
+        <div class="form-group">
+          <label>Store Name</label>
+          <input type="text" id="setStoreName" value="Ireme Creations">
+        </div>
+        <div class="form-group">
+          <label>Seller WhatsApp</label>
+          <input type="text" id="setWhatsApp" value="+250791720024">
+        </div>
+        <div class="form-group">
+          <label>Contact Email</label>
+          <input type="email" id="setEmail" value="jeromecyiza@gmail.com">
+        </div>
+        <div class="form-group">
+          <label>Free Shipping Threshold ($)</label>
+          <input type="number" id="setFreeShip" value="50">
+        </div>
+        <div class="form-group">
+          <label>Currency</label>
+          <select id="setCurrency">
+            <option>USD ($)</option><option>RWF (Fr)</option><option>EUR (€)</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:8px">
+          <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+          <button class="btn btn-danger" onclick="if(confirm('Reset ALL demo data?')){CMS_DB.del(\'seeded\');location.reload();}">Reset Demo Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ══ MODAL: PRODUCT ══ -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('productModal')">&times;</button>
+    <div class="modal-title"><span>🛍️</span> <span id="productModalTitle">Add Product</span></div>
+    <input type="hidden" id="prodId">
+    <div class="form-row">
+      <div class="form-group"><label>Product Name *</label><input type="text" id="prodName" placeholder="e.g. Crochet Keychain"></div>
+      <div class="form-group"><label>Price (USD) *</label><input type="number" id="prodPrice" step="0.01" placeholder="0.00"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Category *</label>
+        <select id="prodCat">
+          <option value="keychains">Keychains</option>
+          <option value="wall-art">Wall Art</option>
+          <option value="decor">Decor</option>
+          <option value="clothing">Clothing</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Stock *</label><input type="number" id="prodStock" placeholder="0"></div>
+    </div>
+    <div class="form-group"><label>Image Path</label><input type="text" id="prodImg" placeholder="../Image/yourimage.jfif"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Status</label>
+        <select id="prodStatus"><option value="active">Active</option><option value="low">Low Stock</option><option value="inactive">Inactive</option></select>
+      </div>
+      <div class="form-group"><label>Sales Count</label><input type="number" id="prodSales" placeholder="0"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('productModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: CUSTOMER ══ -->
+<div class="modal-overlay" id="customerModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('customerModal')">&times;</button>
+    <div class="modal-title"><span>👤</span> <span id="customerModalTitle">Add Customer</span></div>
+    <input type="hidden" id="custId">
+    <div class="form-row">
+      <div class="form-group"><label>Full Name *</label><input type="text" id="custName2" placeholder="Full name"></div>
+      <div class="form-group"><label>Email *</label><input type="email" id="custEmail" placeholder="email@example.com"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Phone</label><input type="tel" id="custPhone2" placeholder="+250..."></div>
+      <div class="form-group"><label>City</label><input type="text" id="custCity" placeholder="Kigali"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Status</label>
+        <select id="custStatus2"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+      </div>
+      <div class="form-group"><label>Total Spent ($)</label><input type="number" id="custSpent" step="0.01" placeholder="0.00"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('customerModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomer()">Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: ORDER DETAIL ══ -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('orderModal')">&times;</button>
+    <div class="modal-title"><span>📦</span> Order Detail</div>
+    <div id="orderDetailContent"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('orderModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div id="cmsToast"></div>
+
+<script src="cms-db.js"></script>
+<script src="cms-app.js"></script>
+</body>
+</html>
